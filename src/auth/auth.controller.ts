@@ -3,13 +3,13 @@ import { SignUpDto } from 'src/dto/auth/signUp.dto';
 import { PrismaService } from 'src/prisma.service';
 import { AuthService } from './auth.service';
 
-@Controller('/api/auth')
+@Controller('/auth')
 export class AuthController {
   constructor(
     private prisma: PrismaService,
     private AuthService: AuthService
   ) {}
-  @Post()
+  @Post('/signup')
   SignUp(@Body() signUpDto: SignUpDto) {
     return this.AuthService.SignUp(signUpDto);
   }
