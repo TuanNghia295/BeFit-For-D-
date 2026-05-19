@@ -41,16 +41,3 @@ This project is indexed by GitNexus as **BeFit-For-D-** (72 symbols, 82 relation
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
-## workspace structure
-this workspace is indexed as a single project root named one_hammer containing two main components
-onehammerStore: python backend
-onehammerUI: nextjs frontend
-
-fullstack workflow
-1. analyze backend impact in onehammerStore directory first
-2. extract the api/contract changes explicitly
-3. analyze frontend impact in onehammerUI based on that contract
-4. produce one merged fullstack plan
-
-technical guidelines
-do not search for onehammerStore or onehammerUI as separate repositories. all file paths must be relative to the root one_hammer (e.g. onehammerStore/main.py or onehammerUI/src/app). treat the backend as the source of truth for api contracts.

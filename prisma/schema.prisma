@@ -20,6 +20,7 @@ model User{
   displayName String
   firstName String
   lastName String
+  hashedPassword String
   target Float @default(2000)
   refreshToken RefreshToken[]
   water WaterLogs[]
