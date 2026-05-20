@@ -6,10 +6,6 @@ export class SignUpDto {
 
   @IsNotEmpty()
   @IsString()
-  readonly displayName!: string;
-
-  @IsNotEmpty()
-  @IsString()
   readonly firstName!: string;
 
   @IsNotEmpty()
