@@ -1,9 +1,9 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { SignUpDto } from 'src/dto/auth/signUp.dto';
 import { PrismaService } from 'src/prisma.service';
 import { AuthService } from './auth.service';
 import { SignInDto } from 'src/dto/auth/signIn.dto';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 
 @Controller('/auth')
 export class AuthController {
@@ -26,8 +26,8 @@ export class AuthController {
     return this.AuthService.Logout(res);
   }
 
-  @Post()
-  Refresh() {
-    return [];
+  @Post('/refresh')
+  Refresh(@Req() req: Request) {
+    return this.AuthService.Refresh(req);
   }
 }

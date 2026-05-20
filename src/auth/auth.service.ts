@@ -153,6 +153,29 @@ export class AuthService {
     return res.json({ message: 'Logout successfully' });
   }
 
+  Refresh(req: Request) {
+    try {
+      // get Refreshtoken from cookies
+      const rawRefreshToken: unknown = req.cookies?.refreshToken;
+      const refreshToken =
+        typeof rawRefreshToken === 'string' ? rawRefreshToken : undefined;
+
+      // check Refreshtoken exist or not
+      if (!refreshToken) {
+        throw new NotFoundException('Refresh token not found');
+      }
+      // return new token
+      const accessToken = this.jwt.sign({ payload: refreshToken });
+      return { accessToken };
+    } catch (error) {
+      console.log('error when refresh token', error);
+      throw new HttpException(
+        'Failed to refresh token',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
   @Cron(CronExpression.EVERY_10_MINUTES)
   async removeExpiredRefreshTokens() {
     await this.prisma.refreshToken.deleteMany({
