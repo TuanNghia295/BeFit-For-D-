@@ -6,14 +6,17 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { SignUpDto } from 'src/dto/auth/signUp.dto';
 import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { SignInDto } from 'src/dto/auth/signIn.dto';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import type { Request, Response } from 'express';
 type BcryptHashFn = (data: string, saltOrRounds: number) => Promise<string>;
 type BcryptCompareFn = (data: string, encrypted: string) => Promise<boolean>;
+
+const saltRound = 10;
 @Injectable()
 export class AuthService {
   constructor(
@@ -42,9 +45,7 @@ export class AuthService {
       }
 
       const displayName = firstName + lastName;
-      const saltRound = 10;
-      const bcryptHash = (bcrypt as unknown as { hash: BcryptHashFn }).hash;
-      const hashedPassword = await bcryptHash(password, saltRound);
+      const hashedPassword = await this.hash(password, saltRound);
 
       const newUser = await this.prisma.user.create({
         data: {
@@ -109,6 +110,17 @@ export class AuthService {
       });
       const expires = new Date();
       expires.setDate(expires.getDate() + 7);
+      // hash refreshToken
+      const hashedRefreshToken = await this.hash(refreshToken, saltRound);
+
+      // Save RefreshToken into DB
+      await this.prisma.refreshToken.create({
+        data: {
+          token: hashedRefreshToken,
+          expire: expires,
+          userId: userExist.id,
+        },
+      });
 
       // Send refresh token to client by cookie
       const cookiesOptions = {
@@ -118,7 +130,8 @@ export class AuthService {
         sameSite: 'strict' as const,
       };
 
-      res.cookie('refreshToken', refreshToken, cookiesOptions);
+      res.cookie('refreshToken', hashedRefreshToken, cookiesOptions);
+
       return res.json({ accessToken });
     } catch (e) {
       console.log('EERR', e);
@@ -128,5 +141,31 @@ export class AuthService {
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
+
+  Logout(res: Response) {
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return res.json({ message: 'Logout successfully' });
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async removeExpiredRefreshTokens() {
+    await this.prisma.refreshToken.deleteMany({
+      where: {
+        expire: {
+          lt: new Date(),
+        },
+      },
+    });
+  }
+
+  private async hash(password: string, saltRound: number): Promise<string> {
+    const bcryptHash = (bcrypt as unknown as { hash: BcryptHashFn }).hash;
+    return await bcryptHash(password, saltRound);
   }
 }

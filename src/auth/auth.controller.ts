@@ -21,9 +21,9 @@ export class AuthController {
     return this.AuthService.SignIn(signInDto, res);
   }
 
-  @Post()
-  Logout() {
-    return [];
+  @Post('/logout')
+  Logout(@Res() res: Response) {
+    return this.AuthService.Logout(res);
   }
 
   @Post()
